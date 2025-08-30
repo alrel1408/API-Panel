@@ -1,0 +1,749 @@
+{
+  "info": {
+    "name": "AlrelShop API Panel",
+    "description": "Complete API collection untuk AlrelShop API Panel - VPN Management System",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "your_api_key_here",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "API Status",
+      "item": [
+        {
+          "name": "Get API Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "status"]
+            },
+            "description": "Check API status dan semua service"
+          }
+        },
+        {
+          "name": "Get System Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/system/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "system", "status"]
+            },
+            "description": "Check system services status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "SSH Management",
+      "item": [
+        {
+          "name": "Create SSH Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"user123\",\n    \"password\": \"password123\",\n    \"days\": 30,\n    \"ip_limit\": 2,\n    \"quota_gb\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ssh/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ssh", "create"]
+            },
+            "description": "Create SSH account baru"
+          }
+        },
+        {
+          "name": "Create Trial SSH",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"minutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ssh/trial",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ssh", "trial"]
+            },
+            "description": "Create trial SSH account"
+          }
+        },
+        {
+          "name": "List SSH Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ssh/list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ssh", "list"]
+            },
+            "description": "List semua SSH accounts"
+          }
+        },
+        {
+          "name": "Delete SSH Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"user123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ssh/delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ssh", "delete"]
+            },
+            "description": "Delete SSH account"
+          }
+        },
+        {
+          "name": "Renew SSH Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"user123\",\n    \"days\": 30,\n    \"password\": \"newpassword123\",\n    \"ip_limit\": 3,\n    \"quota_gb\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ssh/renew",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ssh", "renew"]
+            },
+            "description": "Renew SSH account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "VMess Management",
+      "item": [
+        {
+          "name": "Create VMess Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"vmess123\",\n    \"days\": 30,\n    \"quota_gb\": 10,\n    \"ip_limit\": 2,\n    \"bug\": \"bug.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vmess/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vmess", "create"]
+            },
+            "description": "Create VMess account baru"
+          }
+        },
+        {
+          "name": "Create Trial VMess",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"minutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vmess/trial",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vmess", "trial"]
+            },
+            "description": "Create trial VMess account"
+          }
+        },
+        {
+          "name": "List VMess Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/vmess/list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vmess", "list"]
+            },
+            "description": "List semua VMess accounts"
+          }
+        },
+        {
+          "name": "Delete VMess Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"vmess123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vmess/delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vmess", "delete"]
+            },
+            "description": "Delete VMess account"
+          }
+        },
+        {
+          "name": "Renew VMess Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"vmess123\",\n    \"days\": 30,\n    \"quota_gb\": 15,\n    \"ip_limit\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vmess/renew",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vmess", "renew"]
+            },
+            "description": "Renew VMess account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "VLess Management",
+      "item": [
+        {
+          "name": "Create VLess Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"vless123\",\n    \"days\": 30,\n    \"quota_gb\": 10,\n    \"ip_limit\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vless/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vless", "create"]
+            },
+            "description": "Create VLess account baru"
+          }
+        },
+        {
+          "name": "Create Trial VLess",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"minutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vless/trial",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vless", "trial"]
+            },
+            "description": "Create trial VLess account"
+          }
+        },
+        {
+          "name": "List VLess Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/vless/list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vless", "list"]
+            },
+            "description": "List semua VLess accounts"
+          }
+        },
+        {
+          "name": "Delete VLess Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"vless123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vless/delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vless", "delete"]
+            },
+            "description": "Delete VLess account"
+          }
+        },
+        {
+          "name": "Renew VLess Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"vless123\",\n    \"days\": 30,\n    \"quota_gb\": 15,\n    \"ip_limit\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vless/renew",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vless", "renew"]
+            },
+            "description": "Renew VLess account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shadowsocks Management",
+      "item": [
+        {
+          "name": "Create Shadowsocks Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"ss123\",\n    \"days\": 30,\n    \"quota_gb\": 10,\n    \"cipher\": \"aes-128-gcm\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shadowsocks/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shadowsocks", "create"]
+            },
+            "description": "Create Shadowsocks account baru"
+          }
+        },
+        {
+          "name": "Create Trial Shadowsocks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"minutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shadowsocks/trial",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shadowsocks", "trial"]
+            },
+            "description": "Create trial Shadowsocks account"
+          }
+        },
+        {
+          "name": "List Shadowsocks Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/shadowsocks/list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shadowsocks", "list"]
+            },
+            "description": "List semua Shadowsocks accounts"
+          }
+        },
+        {
+          "name": "Delete Shadowsocks Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"ss123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shadowsocks/delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shadowsocks", "delete"]
+            },
+            "description": "Delete Shadowsocks account"
+          }
+        },
+        {
+          "name": "Renew Shadowsocks Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"ss123\",\n    \"days\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shadowsocks/renew",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shadowsocks", "renew"]
+            },
+            "description": "Renew Shadowsocks account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trojan Management",
+      "item": [
+        {
+          "name": "Create Trojan Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"trojan123\",\n    \"days\": 30,\n    \"quota_gb\": 10,\n    \"ip_limit\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trojan/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trojan", "create"]
+            },
+            "description": "Create Trojan account baru"
+          }
+        },
+        {
+          "name": "Create Trial Trojan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"minutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trojan/trial",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trojan", "trial"]
+            },
+            "description": "Create trial Trojan account"
+          }
+        },
+        {
+          "name": "List Trojan Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trojan/list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trojan", "list"]
+            },
+            "description": "List semua Trojan accounts"
+          }
+        },
+        {
+          "name": "Delete Trojan Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"trojan123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trojan/delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trojan", "delete"]
+            },
+            "description": "Delete Trojan account"
+          }
+        },
+        {
+          "name": "Renew Trojan Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"trojan123\",\n    \"days\": 30,\n    \"quota_gb\": 15,\n    \"ip_limit\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trojan/renew",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trojan", "renew"]
+            },
+            "description": "Renew Trojan account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trial Management",
+      "item": [
+        {
+          "name": "Create Trial Accounts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"service\": \"all\",\n    \"minutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trial/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trial", "create"]
+            },
+            "description": "Create trial accounts untuk semua service"
+          }
+        },
+        {
+          "name": "Create Trial for Specific Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"service\": \"vmess\",\n    \"minutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trial/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trial", "create"]
+            },
+            "description": "Create trial account untuk service tertentu"
+          }
+        },
+        {
+          "name": "List Trial Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trial/list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trial", "list"]
+            },
+            "description": "List semua trial accounts"
+          }
+        },
+        {
+          "name": "Delete Trial Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"WV-ABC123\",\n    \"service\": \"vmess\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trial/delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trial", "delete"]
+            },
+            "description": "Delete trial account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "System Management",
+      "item": [
+        {
+          "name": "Restart System Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"service\": \"xray\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/system/restart",
+              "host": ["{{base_url}}"],
+              "path": ["api", "system", "restart"]
+            },
+            "description": "Restart system service (xray, nginx, ssh, all)"
+          }
+        },
+        {
+          "name": "Restart All Services",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"service\": \"all\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/system/restart",
+              "host": ["{{base_url}}"],
+              "path": ["api", "system", "restart"]
+            },
+            "description": "Restart semua system services"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Add timestamp to request headers",
+          "pm.request.headers.add({\n    key: 'X-Request-Timestamp',\n    value: new Date().toISOString()\n});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Basic response validation",
+          "pm.test(\"Status code is 200 or 201\", function () {\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\n});\n\npm.test(\"Response has required fields\", function () {\n    const response = pm.response.json();\n    pm.expect(response).to.have.property('status');\n});\n\n// Log response for debugging",
+          "console.log('Response:', pm.response.text());"
+        ]
+      }
+    }
+  ]
+}

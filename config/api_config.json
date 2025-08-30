@@ -1,0 +1,136 @@
+{
+  "api": {
+    "host": "0.0.0.0",
+    "port": 5000,
+    "debug": false,
+    "log_level": "INFO",
+    "log_file": "/var/log/api-panel/api-panel.log"
+  },
+  "services": {
+    "ssh": {
+      "enabled": true,
+      "default_days": 30,
+      "default_ip_limit": 1,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_ip_limit": 4,
+      "trial_quota_gb": 5
+    },
+    "vmess": {
+      "enabled": true,
+      "default_days": 30,
+      "default_ip_limit": 1,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_ip_limit": 3,
+      "trial_quota_gb": 1,
+      "default_bug": "bug.com"
+    },
+    "vless": {
+      "enabled": true,
+      "default_days": 30,
+      "default_ip_limit": 1,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_ip_limit": 2,
+      "trial_quota_gb": 1
+    },
+    "shadowsocks": {
+      "enabled": true,
+      "default_days": 30,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_quota_gb": 5,
+      "default_cipher": "aes-128-gcm"
+    },
+    "trojan": {
+      "enabled": true,
+      "default_days": 30,
+      "default_ip_limit": 1,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_ip_limit": 3,
+      "trial_quota_gb": 1
+    },
+    "trial": {
+      "enabled": true,
+      "default_minutes": 60,
+      "auto_cleanup": true,
+      "cleanup_interval": 3600
+    }
+  },
+  "telegram": {
+    "enabled": false,
+    "bot_token": "",
+    "chat_id": "",
+    "notifications": {
+      "account_created": true,
+      "account_deleted": true,
+      "account_renewed": true,
+      "trial_created": true,
+      "system_alerts": true
+    }
+  },
+  "security": {
+    "rate_limit": {
+      "enabled": true,
+      "requests_per_minute": 100,
+      "burst_size": 20
+    },
+    "cors": {
+      "enabled": true,
+      "allowed_origins": ["*"],
+      "allowed_methods": ["GET", "POST", "PUT", "DELETE"],
+      "allowed_headers": ["Content-Type", "Authorization"]
+    },
+    "authentication": {
+      "enabled": true,
+      "type": "bearer",
+      "api_key": "alrelshop-secret-api-key-2024"
+    }
+  },
+  "database": {
+    "ssh_db": "/etc/ssh/.ssh.db",
+    "vmess_db": "/etc/vmess/.vmess.db",
+    "vless_db": "/etc/vless/.vless.db",
+    "shadowsocks_db": "/etc/shadowsocks/.shadowsocks.db",
+    "trojan_db": "/etc/trojan/.trojan.db",
+    "trial_db": "/etc/trial/.trial.db"
+  },
+  "paths": {
+    "config": "/etc/xray/config.json",
+    "domain": "/etc/xray/domain",
+    "isp": "/etc/xray/isp",
+    "city": "/etc/xray/city",
+    "nsdomain": "/root/nsdomain",
+    "slowdns_pub": "/etc/slowdns/server.pub",
+    "web_root": "/var/www/html",
+    "bot_config": "/etc/bot/.bot.db"
+  },
+  "limits": {
+    "ssh_ip_limit_path": "/etc/kyt/limit/ssh/ip",
+    "vmess_ip_limit_path": "/etc/kyt/limit/vmess/ip",
+    "vless_ip_limit_path": "/etc/kyt/limit/vless/ip",
+    "trojan_ip_limit_path": "/etc/kyt/limit/trojan/ip"
+  },
+  "system": {
+    "services": ["xray", "nginx", "ssh"],
+    "restart_delay": 5,
+    "health_check_interval": 300
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "handlers": {
+      "file": {
+        "enabled": true,
+        "path": "/var/log/api-panel/api-panel.log",
+        "max_size": "10MB",
+        "backup_count": 5
+      },
+      "console": {
+        "enabled": true
+      }
+    }
+  }
+}

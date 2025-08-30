@@ -1,0 +1,32 @@
+[Unit]
+Description=AlrelShop API Panel
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/etc/API-Panel
+Environment=PATH=/etc/API-Panel/venv/bin
+ExecStart=/etc/API-Panel/venv/bin/python api/main_api.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=api-panel
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/etc/API-Panel /var/log/api-panel /etc/xray /etc/ssh /etc/vmess /etc/vless /etc/shadowsocks /etc/trojan /etc/trial /etc/kyt /var/www/html
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

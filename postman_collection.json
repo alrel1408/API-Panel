@@ -1,0 +1,554 @@
+{
+	"info": {
+		"_postman_id": "alrelshop-api-panel-2024",
+		"name": "AlrelShop API Panel",
+		"description": "Complete API collection for AlrelShop API Panel with authentication",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "alrelshop"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "alrelshop-secret-api-key-2024",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": ["{{base_url}}"],
+					"path": ["health"]
+				}
+			}
+		},
+		{
+			"name": "API Status",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "{{api_key}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/status",
+					"host": ["{{base_url}}"],
+					"path": ["api", "status"]
+				}
+			}
+		},
+		{
+			"name": "System Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/system/status",
+					"host": ["{{base_url}}"],
+					"path": ["api", "system", "status"]
+				}
+			}
+		},
+		{
+			"name": "SSH Management",
+			"item": [
+				{
+					"name": "Create SSH Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass123\",\n  \"days\": 30,\n  \"ip_limit\": 1,\n  \"quota_gb\": 10\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/ssh/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "ssh", "create"]
+						}
+					}
+				},
+				{
+					"name": "Create Trial SSH",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"trialuser\",\n  \"password\": \"trialpass123\",\n  \"minutes\": 60,\n  \"ip_limit\": 4,\n  \"quota_gb\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/ssh/trial",
+							"host": ["{{base_url}}"],
+							"path": ["api", "ssh", "trial"]
+						}
+					}
+				},
+				{
+					"name": "List SSH Accounts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/ssh/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "ssh", "list"]
+						}
+					}
+				},
+				{
+					"name": "Delete SSH Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/ssh/delete",
+							"host": ["{{base_url}}"],
+							"path": ["api", "ssh", "delete"]
+						}
+					}
+				},
+				{
+					"name": "Renew SSH Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"days\": 30\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/ssh/renew",
+							"host": ["{{base_url}}"],
+							"path": ["api", "ssh", "renew"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "VMess Management",
+			"item": [
+				{
+					"name": "Create VMess Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testvmess\",\n  \"days\": 30,\n  \"ip_limit\": 1,\n  \"quota_gb\": 5,\n  \"bug\": \"bug.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/vmess/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "vmess", "create"]
+						}
+					}
+				},
+				{
+					"name": "Create Trial VMess",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"trialvmess\",\n  \"minutes\": 60,\n  \"ip_limit\": 3,\n  \"quota_gb\": 1,\n  \"bug\": \"bug.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/vmess/trial",
+							"host": ["{{base_url}}"],
+							"path": ["api", "vmess", "trial"]
+						}
+					}
+				},
+				{
+					"name": "List VMess Accounts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/vmess/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "vmess", "list"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "VLess Management",
+			"item": [
+				{
+					"name": "Create VLess Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testvless\",\n  \"days\": 30,\n  \"ip_limit\": 1,\n  \"quota_gb\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/vless/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "vless", "create"]
+						}
+					}
+				},
+				{
+					"name": "Create Trial VLess",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"trialvless\",\n  \"minutes\": 60,\n  \"ip_limit\": 2,\n  \"quota_gb\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/vless/trial",
+							"host": ["{{base_url}}"],
+							"path": ["api", "vless", "trial"]
+						}
+					}
+				},
+				{
+					"name": "List VLess Accounts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/vless/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "vless", "list"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Shadowsocks Management",
+			"item": [
+				{
+					"name": "Create Shadowsocks Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testss\",\n  \"days\": 30,\n  \"quota_gb\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/shadowsocks/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "shadowsocks", "create"]
+						}
+					}
+				},
+				{
+					"name": "Create Trial Shadowsocks",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"trialss\",\n  \"minutes\": 60,\n  \"quota_gb\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/shadowsocks/trial",
+							"host": ["{{base_url}}"],
+							"path": ["api", "shadowsocks", "trial"]
+						}
+					}
+				},
+				{
+					"name": "List Shadowsocks Accounts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/shadowsocks/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "shadowsocks", "list"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Trojan Management",
+			"item": [
+				{
+					"name": "Create Trojan Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testtrojan\",\n  \"days\": 30,\n  \"ip_limit\": 1,\n  \"quota_gb\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/trojan/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "trojan", "create"]
+						}
+					}
+				},
+				{
+					"name": "Create Trial Trojan",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"trialtrojan\",\n  \"minutes\": 60,\n  \"ip_limit\": 3,\n  \"quota_gb\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/trojan/trial",
+							"host": ["{{base_url}}"],
+							"path": ["api", "trojan", "trial"]
+						}
+					}
+				},
+				{
+					"name": "List Trojan Accounts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/trojan/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "trojan", "list"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Trial Management",
+			"item": [
+				{
+					"name": "Create Trial Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service\": \"ssh\",\n  \"minutes\": 60,\n  \"ip_limit\": 4,\n  \"quota_gb\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/trial/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "trial", "create"]
+						}
+					}
+				},
+				{
+					"name": "List Trial Accounts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/trial/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "trial", "list"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
