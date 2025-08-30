@@ -334,66 +334,80 @@ class VMessService:
             return False
     
     def _add_to_xray_config(self, username, user_uuid, expiry_str):
-        """Add user to Xray config"""
+        """Add user to Xray config using sed like original script"""
         try:
-            # Read current config
-            with open(self.config_path, "r") as f:
-                config = json.load(f)
+            # Use sed command like original script for vmess WS
+            vmess_ws_entry = f'### {username} {expiry_str}\n}},{{"id": "{user_uuid}","alterId": 0,"email": "{username}"}}'
+            subprocess.run([
+                'sed', '-i', f'/#vmess$/a\\{vmess_ws_entry}',
+                self.config_path
+            ], check=True)
             
-            # Add to vmess section
-            vmess_user = {
-                "id": user_uuid,
-                "alterId": 0,
-                "email": username
-            }
-            
-            # Find vmess section and add user
-            for inbound in config.get("inbounds", []):
-                if inbound.get("protocol") == "vmess":
-                    if "settings" not in inbound:
-                        inbound["settings"] = {}
-                    if "clients" not in inbound["settings"]:
-                        inbound["settings"]["clients"] = []
-                    inbound["settings"]["clients"].append(vmess_user)
-                    break
-            
-            # Write updated config
-            with open(self.config_path, "w") as f:
-                json.dump(config, f, indent=2)
+            # Use sed command like original script for vmess gRPC  
+            vmess_grpc_entry = f'## {username} {expiry_str}\n}},{{"id": "{user_uuid}","alterId": 0,"email": "{username}"}}'
+            subprocess.run([
+                'sed', '-i', f'/#vmessgrpc$/a\\{vmess_grpc_entry}',
+                self.config_path
+            ], check=True)
                 
         except Exception as e:
             logger.error(f"Error adding to Xray config: {e}")
             raise
     
     def _remove_from_xray_config(self, username):
-        """Remove user from Xray config"""
+        """Remove user from Xray config using sed like original script"""
         try:
-            # Read current config
-            with open(self.config_path, "r") as f:
-                config = json.load(f)
-            
-            # Remove from vmess section
-            for inbound in config.get("inbounds", []):
-                if inbound.get("protocol") == "vmess":
-                    if "settings" in inbound and "clients" in inbound["settings"]:
-                        inbound["settings"]["clients"] = [
-                            client for client in inbound["settings"]["clients"]
-                            if client.get("email") != username
-                        ]
-                    break
-            
-            # Write updated config
-            with open(self.config_path, "w") as f:
-                json.dump(config, f, indent=2)
+            # Get expiry for the user
+            expiry = self._get_user_expiry(username)
+            if expiry:
+                # Remove vmess WS entry
+                subprocess.run([
+                    'sed', '-i', f'/^### {username} {expiry}/,/^}},{{/d',
+                    self.config_path
+                ], check=True)
+                
+                # Remove vmess gRPC entry
+                subprocess.run([
+                    'sed', '-i', f'/^## {username} {expiry}/,/^}},{{/d',
+                    self.config_path
+                ], check=True)
                 
         except Exception as e:
             logger.error(f"Error removing from Xray config: {e}")
             raise
     
     def _update_xray_config(self, username, new_expiry):
-        """Update user expiry in Xray config"""
-        # For VMess, expiry is managed in database, not in Xray config
-        pass
+        """Update user expiry in Xray config using sed like original script"""
+        try:
+            # Update vmess WS entry
+            subprocess.run([
+                'sed', '-i', f'/^### {username}/c\\### {username} {new_expiry}',
+                self.config_path
+            ], check=True)
+            
+            # Update vmess gRPC entry  
+            subprocess.run([
+                'sed', '-i', f'/^## {username}/c\\## {username} {new_expiry}',
+                self.config_path
+            ], check=True)
+                
+        except Exception as e:
+            logger.error(f"Error updating Xray config: {e}")
+            raise
+    
+    def _get_user_expiry(self, username):
+        """Get user expiry from database"""
+        try:
+            if os.path.exists(self.vmess_db_path):
+                with open(self.vmess_db_path, "r") as f:
+                    for line in f:
+                        if line.startswith(f"### {username} "):
+                            parts = line.strip().split()
+                            if len(parts) >= 3:
+                                return parts[2]
+            return None
+        except:
+            return None
     
     def _add_to_db(self, username, expiry, user_uuid, quota_gb, ip_limit):
         """Add user to database"""

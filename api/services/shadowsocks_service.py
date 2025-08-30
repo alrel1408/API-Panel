@@ -302,66 +302,80 @@ class ShadowsocksService:
             return False
     
     def _add_to_xray_config(self, username, password, cipher, expiry_str):
-        """Add user to Xray config"""
+        """Add user to Xray config using sed like original script"""
         try:
-            # Read current config
-            with open(self.config_path, "r") as f:
-                config = json.load(f)
+            # Use sed command like original script for shadowsocks WS
+            ss_ws_entry = f'#!! {username} {expiry_str}\n}},{{"password": "{password}","method": "{cipher}","email": "{username}"}}'
+            subprocess.run([
+                'sed', '-i', f'/#ssws$/a\\{ss_ws_entry}',
+                self.config_path
+            ], check=True)
             
-            # Add to shadowsocks section
-            ss_user = {
-                "password": password,
-                "method": cipher,
-                "email": username
-            }
-            
-            # Find shadowsocks section and add user
-            for inbound in config.get("inbounds", []):
-                if inbound.get("protocol") == "shadowsocks":
-                    if "settings" not in inbound:
-                        inbound["settings"] = {}
-                    if "clients" not in inbound["settings"]:
-                        inbound["settings"]["clients"] = []
-                    inbound["settings"]["clients"].append(ss_user)
-                    break
-            
-            # Write updated config
-            with open(self.config_path, "w") as f:
-                json.dump(config, f, indent=2)
+            # Use sed command like original script for shadowsocks gRPC  
+            ss_grpc_entry = f'#&! {username} {expiry_str}\n}},{{"password": "{password}","method": "{cipher}","email": "{username}"}}'
+            subprocess.run([
+                'sed', '-i', f'/#ssgrpc$/a\\{ss_grpc_entry}',
+                self.config_path
+            ], check=True)
                 
         except Exception as e:
             logger.error(f"Error adding to Xray config: {e}")
             raise
     
     def _remove_from_xray_config(self, username):
-        """Remove user from Xray config"""
+        """Remove user from Xray config using sed like original script"""
         try:
-            # Read current config
-            with open(self.config_path, "r") as f:
-                config = json.load(f)
-            
-            # Remove from shadowsocks section
-            for inbound in config.get("inbounds", []):
-                if inbound.get("protocol") == "shadowsocks":
-                    if "settings" in inbound and "clients" in inbound["settings"]:
-                        inbound["settings"]["clients"] = [
-                            client for client in inbound["settings"]["clients"]
-                            if client.get("email") != username
-                        ]
-                    break
-            
-            # Write updated config
-            with open(self.config_path, "w") as f:
-                json.dump(config, f, indent=2)
+            # Get expiry for the user
+            expiry = self._get_user_expiry(username)
+            if expiry:
+                # Remove shadowsocks WS entry
+                subprocess.run([
+                    'sed', '-i', f'/^#!! {username} {expiry}/,/^}},{{/d',
+                    self.config_path
+                ], check=True)
+                
+                # Remove shadowsocks gRPC entry
+                subprocess.run([
+                    'sed', '-i', f'/^#&! {username} {expiry}/,/^}},{{/d',
+                    self.config_path
+                ], check=True)
                 
         except Exception as e:
             logger.error(f"Error removing from Xray config: {e}")
             raise
     
     def _update_xray_config(self, username, new_expiry):
-        """Update user expiry in Xray config"""
-        # For Shadowsocks, expiry is managed in database, not in Xray config
-        pass
+        """Update user expiry in Xray config using sed like original script"""
+        try:
+            # Update shadowsocks WS entry
+            subprocess.run([
+                'sed', '-i', f'/^#!! {username}/c\\#!! {username} {new_expiry}',
+                self.config_path
+            ], check=True)
+            
+            # Update shadowsocks gRPC entry  
+            subprocess.run([
+                'sed', '-i', f'/^#&! {username}/c\\#&! {username} {new_expiry}',
+                self.config_path
+            ], check=True)
+                
+        except Exception as e:
+            logger.error(f"Error updating Xray config: {e}")
+            raise
+    
+    def _get_user_expiry(self, username):
+        """Get user expiry from database"""
+        try:
+            if os.path.exists(self.ss_db_path):
+                with open(self.ss_db_path, "r") as f:
+                    for line in f:
+                        if line.startswith(f"### {username} "):
+                            parts = line.strip().split()
+                            if len(parts) >= 3:
+                                return parts[2]
+            return None
+        except:
+            return None
     
     def _add_to_db(self, username, expiry, password):
         """Add user to database"""

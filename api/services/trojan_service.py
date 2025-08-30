@@ -331,65 +331,80 @@ class TrojanService:
             return False
     
     def _add_to_xray_config(self, username, password, expiry_str):
-        """Add user to Xray config"""
+        """Add user to Xray config using sed like original script"""
         try:
-            # Read current config
-            with open(self.config_path, "r") as f:
-                config = json.load(f)
+            # Use sed command like original script for trojan WS
+            trojan_ws_entry = f'#! {username} {expiry_str}\n}},{{"password": "{password}","email": "{username}"}}'
+            subprocess.run([
+                'sed', '-i', f'/#trojanws$/a\\{trojan_ws_entry}',
+                self.config_path
+            ], check=True)
             
-            # Add to trojan section
-            trojan_user = {
-                "password": password,
-                "email": username
-            }
-            
-            # Find trojan section and add user
-            for inbound in config.get("inbounds", []):
-                if inbound.get("protocol") == "trojan":
-                    if "settings" not in inbound:
-                        inbound["settings"] = {}
-                    if "clients" not in inbound["settings"]:
-                        inbound["settings"]["clients"] = []
-                    inbound["settings"]["clients"].append(trojan_user)
-                    break
-            
-            # Write updated config
-            with open(self.config_path, "w") as f:
-                json.dump(config, f, indent=2)
+            # Use sed command like original script for trojan gRPC  
+            trojan_grpc_entry = f'#!# {username} {expiry_str}\n}},{{"password": "{password}","email": "{username}"}}'
+            subprocess.run([
+                'sed', '-i', f'/#trojangrpc$/a\\{trojan_grpc_entry}',
+                self.config_path
+            ], check=True)
                 
         except Exception as e:
             logger.error(f"Error adding to Xray config: {e}")
             raise
     
     def _remove_from_xray_config(self, username):
-        """Remove user from Xray config"""
+        """Remove user from Xray config using sed like original script"""
         try:
-            # Read current config
-            with open(self.config_path, "r") as f:
-                config = json.load(f)
-            
-            # Remove from trojan section
-            for inbound in config.get("inbounds", []):
-                if inbound.get("protocol") == "trojan":
-                    if "settings" in inbound and "clients" in inbound["settings"]:
-                        inbound["settings"]["clients"] = [
-                            client for client in inbound["settings"]["clients"]
-                            if client.get("email") != username
-                        ]
-                    break
-            
-            # Write updated config
-            with open(self.config_path, "w") as f:
-                json.dump(config, f, indent=2)
+            # Get expiry for the user
+            expiry = self._get_user_expiry(username)
+            if expiry:
+                # Remove trojan WS entry
+                subprocess.run([
+                    'sed', '-i', f'/^#! {username} {expiry}/,/^}},{{/d',
+                    self.config_path
+                ], check=True)
+                
+                # Remove trojan gRPC entry
+                subprocess.run([
+                    'sed', '-i', f'/^#!# {username} {expiry}/,/^}},{{/d',
+                    self.config_path
+                ], check=True)
                 
         except Exception as e:
             logger.error(f"Error removing from Xray config: {e}")
             raise
     
     def _update_xray_config(self, username, new_expiry):
-        """Update user expiry in Xray config"""
-        # For Trojan, expiry is managed in database, not in Xray config
-        pass
+        """Update user expiry in Xray config using sed like original script"""
+        try:
+            # Update trojan WS entry
+            subprocess.run([
+                'sed', '-i', f'/^#! {username}/c\\#! {username} {new_expiry}',
+                self.config_path
+            ], check=True)
+            
+            # Update trojan gRPC entry  
+            subprocess.run([
+                'sed', '-i', f'/^#!# {username}/c\\#!# {username} {new_expiry}',
+                self.config_path
+            ], check=True)
+                
+        except Exception as e:
+            logger.error(f"Error updating Xray config: {e}")
+            raise
+    
+    def _get_user_expiry(self, username):
+        """Get user expiry from database"""
+        try:
+            if os.path.exists(self.trojan_db_path):
+                with open(self.trojan_db_path, "r") as f:
+                    for line in f:
+                        if line.startswith(f"### {username} "):
+                            parts = line.strip().split()
+                            if len(parts) >= 3:
+                                return parts[2]
+            return None
+        except:
+            return None
     
     def _add_to_db(self, username, expiry, password, quota_gb, ip_limit):
         """Add user to database"""
@@ -445,6 +460,12 @@ class TrojanService:
     def _create_config_file(self, username, password, quota_gb, ip_limit, duration, is_trial=False):
         """Create Trojan config file"""
         server_info = self._get_server_info()
+        
+        # Calculate expiry date
+        if is_trial:
+            expiry_date = datetime.now() + timedelta(minutes=duration)
+        else:
+            expiry_date = datetime.now() + timedelta(days=duration)
         
         # Generate Trojan links
         trojan_ws_tls = f"trojan://{password}@{self.domain}:443?path=/trojan-ws&security=tls&type=ws&sni={self.domain}#{username}"
