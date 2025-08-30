@@ -60,17 +60,45 @@ config = load_config()
 def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not config.get("security", {}).get("authentication", {}).get("enabled", False):
+        # Always check authentication - remove bypass
+        auth_enabled = config.get("security", {}).get("authentication", {}).get("enabled", True)
+        
+        if not auth_enabled:
+            logger.warning("Authentication is disabled - this is not recommended for production")
             return f(*args, **kwargs)
         
-        api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+        # Check for API key in headers (X-API-Key) or Authorization header (Bearer token)
+        api_key = None
+        
+        # Check X-API-Key header
+        if request.headers.get('X-API-Key'):
+            api_key = request.headers.get('X-API-Key')
+        
+        # Check Authorization header (Bearer token)
+        elif request.headers.get('Authorization'):
+            auth_header = request.headers.get('Authorization')
+            if auth_header.startswith('Bearer '):
+                api_key = auth_header.replace('Bearer ', '')
+        
+        # Check URL parameter as fallback
+        elif request.args.get('api_key'):
+            api_key = request.args.get('api_key')
+        
         expected_key = config.get("security", {}).get("authentication", {}).get("api_key", "")
         
-        if not api_key or api_key != expected_key:
+        # Validate API key
+        if not api_key:
             return jsonify({
                 "success": False,
-                "message": "Invalid or missing API key",
-                "error": "UNAUTHORIZED"
+                "message": "Missing API key. Provide in X-API-Key header, Authorization: Bearer <token>, or api_key parameter",
+                "error": "MISSING_API_KEY"
+            }), 401
+            
+        if api_key != expected_key:
+            return jsonify({
+                "success": False,
+                "message": "Invalid API key",
+                "error": "INVALID_API_KEY"
             }), 401
         
         return f(*args, **kwargs)

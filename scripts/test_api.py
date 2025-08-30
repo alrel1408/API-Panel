@@ -15,7 +15,7 @@ from datetime import datetime
 
 # Configuration
 BASE_URL = "http://localhost:5000"
-API_KEY = "your_api_key_here"  # Ganti dengan API key yang valid
+API_KEY = "alrelshop-secret-api-key-2024"  # API key yang valid sesuai config
 
 # Test data
 TEST_ACCOUNTS = {
@@ -92,9 +92,12 @@ def test_health_endpoint():
     print_header("Testing Health Endpoint")
     
     try:
-        response = requests.get(f"{BASE_URL}/health", timeout=10)
+        response = requests.get(f"{BASE_URL}/", timeout=10)
         if response.status_code == 200:
-            print_success(f"Health endpoint: {response.text.strip()}")
+            data = response.json()
+            print_success(f"Health endpoint: {data.get('message', 'API Panel')}")
+            print_info(f"Version: {data.get('version', 'N/A')}")
+            print_info(f"Status: {data.get('status', 'N/A')}")
             return True
         else:
             print_error(f"Health endpoint failed: {response.status_code}")
@@ -122,6 +125,55 @@ def test_api_status():
         print_error(f"API status error: {e}")
         return False
 
+def test_authentication():
+    """Test API authentication"""
+    print_header("Testing API Authentication")
+    
+    # Test without API key
+    try:
+        response = requests.get(f"{BASE_URL}/api/ssh/list", timeout=10)
+        if response.status_code == 401:
+            print_success("Authentication properly blocks unauthorized requests")
+        else:
+            print_error(f"Authentication bypass detected! Status: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print_error(f"Authentication test error: {e}")
+    
+    # Test with invalid API key
+    try:
+        headers = {"X-API-Key": "invalid-key"}
+        response = requests.get(f"{BASE_URL}/api/ssh/list", headers=headers, timeout=10)
+        if response.status_code == 401:
+            print_success("Authentication properly rejects invalid API key")
+        else:
+            print_error(f"Invalid API key accepted! Status: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print_error(f"Invalid API key test error: {e}")
+    
+    # Test with valid API key using X-API-Key header
+    try:
+        headers = {"X-API-Key": API_KEY}
+        response = requests.get(f"{BASE_URL}/api/ssh/list", headers=headers, timeout=10)
+        if response.status_code == 200:
+            print_success("X-API-Key header authentication working")
+        else:
+            print_error(f"Valid X-API-Key rejected! Status: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print_error(f"X-API-Key test error: {e}")
+    
+    # Test with valid API key using Authorization Bearer header
+    try:
+        headers = {"Authorization": f"Bearer {API_KEY}"}
+        response = requests.get(f"{BASE_URL}/api/ssh/list", headers=headers, timeout=10)
+        if response.status_code == 200:
+            print_success("Authorization Bearer authentication working")
+        else:
+            print_error(f"Valid Bearer token rejected! Status: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print_error(f"Bearer token test error: {e}")
+    
+    return True
+
 def test_system_status():
     """Test system status endpoint"""
     print_header("Testing System Status")
@@ -146,9 +198,11 @@ def test_ssh_endpoints():
     """Test SSH service endpoints"""
     print_header("Testing SSH Service Endpoints")
     
+    headers = {"X-API-Key": API_KEY}
+    
     # Test SSH list
     try:
-        response = requests.get(f"{BASE_URL}/api/ssh/list", timeout=10)
+        response = requests.get(f"{BASE_URL}/api/ssh/list", headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("SSH list endpoint working")
         else:
@@ -159,7 +213,7 @@ def test_ssh_endpoints():
     # Test SSH create
     try:
         data = TEST_ACCOUNTS["ssh"]
-        response = requests.post(f"{BASE_URL}/api/ssh/create", json=data, timeout=10)
+        response = requests.post(f"{BASE_URL}/api/ssh/create", json=data, headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("SSH create endpoint working")
             result = response.json()
@@ -175,9 +229,11 @@ def test_vmess_endpoints():
     """Test VMess service endpoints"""
     print_header("Testing VMess Service Endpoints")
     
+    headers = {"X-API-Key": API_KEY}
+    
     # Test VMess list
     try:
-        response = requests.get(f"{BASE_URL}/api/vmess/list", timeout=10)
+        response = requests.get(f"{BASE_URL}/api/vmess/list", headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("VMess list endpoint working")
         else:
@@ -188,7 +244,7 @@ def test_vmess_endpoints():
     # Test VMess create
     try:
         data = TEST_ACCOUNTS["vmess"]
-        response = requests.post(f"{BASE_URL}/api/vmess/create", json=data, timeout=10)
+        response = requests.post(f"{BASE_URL}/api/vmess/create", json=data, headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("VMess create endpoint working")
             result = response.json()
@@ -204,9 +260,11 @@ def test_vless_endpoints():
     """Test VLess service endpoints"""
     print_header("Testing VLess Service Endpoints")
     
+    headers = {"X-API-Key": API_KEY}
+    
     # Test VLess list
     try:
-        response = requests.get(f"{BASE_URL}/api/vless/list", timeout=10)
+        response = requests.get(f"{BASE_URL}/api/vless/list", headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("VLess list endpoint working")
         else:
@@ -217,7 +275,7 @@ def test_vless_endpoints():
     # Test VLess create
     try:
         data = TEST_ACCOUNTS["vless"]
-        response = requests.post(f"{BASE_URL}/api/vless/create", json=data, timeout=10)
+        response = requests.post(f"{BASE_URL}/api/vless/create", json=data, headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("VLess create endpoint working")
             result = response.json()
@@ -233,9 +291,11 @@ def test_shadowsocks_endpoints():
     """Test Shadowsocks service endpoints"""
     print_header("Testing Shadowsocks Service Endpoints")
     
+    headers = {"X-API-Key": API_KEY}
+    
     # Test Shadowsocks list
     try:
-        response = requests.get(f"{BASE_URL}/api/shadowsocks/list", timeout=10)
+        response = requests.get(f"{BASE_URL}/api/shadowsocks/list", headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("Shadowsocks list endpoint working")
         else:
@@ -246,7 +306,7 @@ def test_shadowsocks_endpoints():
     # Test Shadowsocks create
     try:
         data = TEST_ACCOUNTS["shadowsocks"]
-        response = requests.post(f"{BASE_URL}/api/shadowsocks/create", json=data, timeout=10)
+        response = requests.post(f"{BASE_URL}/api/shadowsocks/create", json=data, headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("Shadowsocks create endpoint working")
             result = response.json()
@@ -262,9 +322,11 @@ def test_trojan_endpoints():
     """Test Trojan service endpoints"""
     print_header("Testing Trojan Service Endpoints")
     
+    headers = {"X-API-Key": API_KEY}
+    
     # Test Trojan list
     try:
-        response = requests.get(f"{BASE_URL}/api/trojan/list", timeout=10)
+        response = requests.get(f"{BASE_URL}/api/trojan/list", headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("Trojan list endpoint working")
         else:
@@ -275,7 +337,7 @@ def test_trojan_endpoints():
     # Test Trojan create
     try:
         data = TEST_ACCOUNTS["trojan"]
-        response = requests.post(f"{BASE_URL}/api/trojan/create", json=data, timeout=10)
+        response = requests.post(f"{BASE_URL}/api/trojan/create", json=data, headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("Trojan create endpoint working")
             result = response.json()
@@ -291,9 +353,11 @@ def test_trial_endpoints():
     """Test Trial service endpoints"""
     print_header("Testing Trial Service Endpoints")
     
+    headers = {"X-API-Key": API_KEY}
+    
     # Test Trial list
     try:
-        response = requests.get(f"{BASE_URL}/api/trial/list", timeout=10)
+        response = requests.get(f"{BASE_URL}/api/trial/list", headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("Trial list endpoint working")
         else:
@@ -309,7 +373,7 @@ def test_trial_endpoints():
             "ip_limit": 4,
             "quota_gb": 5
         }
-        response = requests.post(f"{BASE_URL}/api/trial/create", json=data, timeout=10)
+        response = requests.post(f"{BASE_URL}/api/trial/create", json=data, headers=headers, timeout=10)
         if response.status_code == 200:
             print_success("Trial create endpoint working")
             result = response.json()
@@ -330,8 +394,9 @@ def cleanup_test_accounts():
     for service in services:
         try:
             username = TEST_ACCOUNTS[service]["username"]
+            headers = {"X-API-Key": API_KEY}
             response = requests.delete(f"{BASE_URL}/api/{service}/delete", 
-                                    json={"username": username}, timeout=10)
+                                    json={"username": username}, headers=headers, timeout=10)
             if response.status_code == 200:
                 print_success(f"Cleaned up {service} test account: {username}")
             else:
@@ -354,6 +419,7 @@ def main():
     
     # Test all endpoints
     test_api_status()
+    test_authentication()
     test_system_status()
     test_ssh_endpoints()
     test_vmess_endpoints()

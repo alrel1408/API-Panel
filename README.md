@@ -2,6 +2,32 @@
 
 API Panel lengkap untuk mengelola semua service VPN berdasarkan script AlrelShop Auto Script.
 
+## 🚀 Quick Install - One Click Installation
+
+### **Auto Install Langsung dari GitHub (Tercepat!)**
+```bash
+# Install langsung dari GitHub repository
+curl -sL https://raw.githubusercontent.com/alrel1408/API-Panel/main/install/install.sh | bash
+```
+
+### **Alternative One-Click Install**
+```bash
+# Method 1: Clone dan install otomatis
+bash <(curl -s https://raw.githubusercontent.com/alrel1408/API-Panel/main/install/quick-install.sh)
+
+# Method 2: Wget dan install
+wget -qO- https://raw.githubusercontent.com/alrel1408/API-Panel/main/install/install.sh | bash
+
+# Method 3: Untuk server tanpa internet langsung
+git clone https://github.com/alrel1408/API-Panel.git && cd API-Panel && chmod +x install/install.sh && ./install/install.sh
+```
+
+**✅ Setelah install selesai, API Panel akan tersedia di:** `http://YOUR_IP:5000`
+
+**🔐 Default API Key:** `alrelshop-secret-api-key-2024` *(Ganti ini sebelum production!)*
+
+---
+
 ## 🚀 Fitur Utama
 
 ### ✅ **SSH/OVPN Management**
@@ -64,7 +90,7 @@ API Panel lengkap untuk mengelola semua service VPN berdasarkan script AlrelShop
     └── install.sh               # Auto-installer
 ```
 
-## 🛠️ Installation
+## 🛠️ Installation Manual
 
 ### 1. **Auto Install (Recommended)**
 ```bash
@@ -171,6 +197,7 @@ POST   /system/restart  - Restart system services
 ```bash
 curl -X POST http://YOUR_IP:5000/api/ssh/create \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: alrelshop-secret-api-key-2024" \
   -d '{
     "username": "user123",
     "password": "password123",
@@ -184,6 +211,7 @@ curl -X POST http://YOUR_IP:5000/api/ssh/create \
 ```bash
 curl -X POST http://YOUR_IP:5000/api/vmess/trial \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: alrelshop-secret-api-key-2024" \
   -d '{
     "minutes": 60
   }'
@@ -192,13 +220,13 @@ curl -X POST http://YOUR_IP:5000/api/vmess/trial \
 ### **List All Accounts**
 ```bash
 # List SSH accounts
-curl http://YOUR_IP:5000/api/ssh/list
+curl -H "X-API-Key: alrelshop-secret-api-key-2024" http://YOUR_IP:5000/api/ssh/list
 
 # List VMess accounts
-curl http://YOUR_IP:5000/api/vmess/list
+curl -H "X-API-Key: alrelshop-secret-api-key-2024" http://YOUR_IP:5000/api/vmess/list
 
 # List all trial accounts
-curl http://YOUR_IP:5000/api/trial/list
+curl -H "X-API-Key: alrelshop-secret-api-key-2024" http://YOUR_IP:5000/api/trial/list
 ```
 
 ## ⚙️ Configuration
@@ -225,6 +253,13 @@ curl http://YOUR_IP:5000/api/trial/list
       "default_quota_gb": 0
     }
   },
+  "security": {
+    "authentication": {
+      "enabled": true,
+      "type": "bearer",
+      "api_key": "alrelshop-secret-api-key-2024"
+    }
+  },
   "telegram": {
     "enabled": false,
     "bot_token": "",
@@ -232,6 +267,40 @@ curl http://YOUR_IP:5000/api/trial/list
   }
 }
 ```
+
+## 🔐 API Authentication
+
+**⚠️ PENTING:** Semua endpoint API (kecuali homepage dan status) memerlukan authentication!
+
+### **Cara Menggunakan API Key:**
+
+#### **Method 1: X-API-Key Header (Recommended)**
+```bash
+curl -H "X-API-Key: alrelshop-secret-api-key-2024" \
+     -X GET http://YOUR_IP:5000/api/ssh/list
+```
+
+#### **Method 2: Authorization Bearer Header**
+```bash
+curl -H "Authorization: Bearer alrelshop-secret-api-key-2024" \
+     -X GET http://YOUR_IP:5000/api/ssh/list
+```
+
+#### **Method 3: URL Parameter (tidak direkomendasikan)**
+```bash
+curl -X GET "http://YOUR_IP:5000/api/ssh/list?api_key=alrelshop-secret-api-key-2024"
+```
+
+### **Mengubah API Key:**
+```bash
+# Edit config file
+sudo nano /etc/API-Panel/config/api_config.json
+
+# Ubah nilai api_key, lalu restart service
+sudo systemctl restart api-panel
+```
+
+**📖 Dokumentasi lengkap:** [API_AUTHENTICATION.md](API_AUTHENTICATION.md)
 
 ## 🔧 Management Commands
 
@@ -255,14 +324,20 @@ journalctl -u api-panel -f
 
 ### **Utility Scripts**
 ```bash
+# Start API Panel service
+sudo /etc/API-Panel/scripts/start.sh
+
+# Stop API Panel service  
+sudo /etc/API-Panel/scripts/stop.sh
+
 # Check API Panel status
-/etc/API-Panel/scripts/check_status.sh
+/etc/API-Panel/scripts/status.sh
 
 # Backup configuration
 /etc/API-Panel/scripts/backup.sh
 
-# Manual start
-/etc/API-Panel/start_api.sh
+# Test API authentication
+python3 /etc/API-Panel/scripts/test_api.py
 ```
 
 ## 📊 Monitoring & Logs
@@ -274,23 +349,26 @@ journalctl -u api-panel -f
 
 ### **Status Monitoring**
 ```bash
-# Check API status
+# Check API status (no auth required)
 curl http://YOUR_IP:5000/api/status
 
-# Check system services
+# Check system services (no auth required)
 curl http://YOUR_IP:5000/api/system/status
 
-# Check specific service
-curl http://YOUR_IP:5000/api/ssh/list
+# Check specific service (auth required)
+curl -H "X-API-Key: alrelshop-secret-api-key-2024" http://YOUR_IP:5000/api/ssh/list
 ```
 
 ## 🔒 Security Features
 
 ### **Built-in Security**
-- Input validation dan sanitization
-- Error handling yang aman
-- Logging untuk audit trail
-- Rate limiting (configurable)
+- ✅ **API Key Authentication** - Semua endpoint protected dengan API key
+- ✅ **Input validation** dan sanitization
+- ✅ **Error handling** yang aman
+- ✅ **Audit logging** untuk semua request
+- ✅ **Rate limiting** (configurable)
+- ✅ **CORS protection** dengan header validation
+- ⚠️ **PENTING:** Ganti API key default sebelum production!
 
 ### **Network Security**
 - Nginx reverse proxy
