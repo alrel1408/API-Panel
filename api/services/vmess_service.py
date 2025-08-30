@@ -10,6 +10,7 @@ import os
 import re
 import uuid
 import base64
+import time
 from datetime import datetime, timedelta
 import logging
 
@@ -346,42 +347,120 @@ class VMessService:
             return False
     
     def _add_to_xray_config(self, username, user_uuid, expiry_str):
-        """Add user to Xray config using Python file manipulation"""
+        """Add user to Xray config - properly formatted for Xray VMess"""
         try:
             if not os.path.exists(self.config_path):
-                # Create a basic config structure if it doesn't exist
+                # Create a minimal valid Xray config if it doesn't exist
                 basic_config = {
-                    "inbounds": [],
-                    "outbounds": [],
-                    "routing": {}
+                    "inbounds": [
+                        {
+                            "port": 443,
+                            "protocol": "vmess",
+                            "settings": {
+                                "clients": []
+                            }
+                        }
+                    ],
+                    "outbounds": [
+                        {
+                            "protocol": "freedom"
+                        }
+                    ]
                 }
                 os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
                 with open(self.config_path, "w") as f:
                     json.dump(basic_config, f, indent=2)
+                logger.info(f"Created basic Xray config at {self.config_path}")
+                return
             
-            # Read current config
-            with open(self.config_path, "r") as f:
-                content = f.read()
-            
-            # Add vmess WS entry
-            vmess_ws_entry = f'### {username} {expiry_str}\n}},{{"id": "{user_uuid}","alterId": 0,"email": "{username}"}}'
-            if '#vmess' in content:
-                content = content.replace('#vmess', f'#vmess\n{vmess_ws_entry}')
-            else:
-                # If marker doesn't exist, add it at the end
-                content += f'\n#vmess\n{vmess_ws_entry}'
-            
-            # Add vmess gRPC entry  
-            vmess_grpc_entry = f'## {username} {expiry_str}\n}},{{"id": "{user_uuid}","alterId": 0,"email": "{username}"}}'
-            if '#vmessgrpc' in content:
-                content = content.replace('#vmessgrpc', f'#vmessgrpc\n{vmess_grpc_entry}')
-            else:
-                # If marker doesn't exist, add it at the end
-                content += f'\n#vmessgrpc\n{vmess_grpc_entry}'
-            
-            # Write back to file
-            with open(self.config_path, "w") as f:
-                f.write(content)
+            # Read current config as JSON
+            try:
+                with open(self.config_path, "r") as f:
+                    config = json.load(f)
+                
+                # Find vmess inbound and add client
+                vmess_added = False
+                for inbound in config.get("inbounds", []):
+                    if inbound.get("protocol") == "vmess":
+                        if "settings" not in inbound:
+                            inbound["settings"] = {"clients": []}
+                        if "clients" not in inbound["settings"]:
+                            inbound["settings"]["clients"] = []
+                        
+                        # Add new client
+                        client = {
+                            "id": user_uuid,
+                            "alterId": 0,
+                            "email": username,
+                            "level": 0
+                        }
+                        inbound["settings"]["clients"].append(client)
+                        vmess_added = True
+                        logger.info(f"Added VMess client {username} to existing inbound")
+                        break
+                
+                # If no vmess inbound found, create one
+                if not vmess_added:
+                    vmess_inbound = {
+                        "port": 443,
+                        "protocol": "vmess",
+                        "settings": {
+                            "clients": [
+                                {
+                                    "id": user_uuid,
+                                    "alterId": 0,
+                                    "email": username,
+                                    "level": 0
+                                }
+                            ]
+                        },
+                        "streamSettings": {
+                            "network": "ws",
+                            "wsSettings": {
+                                "path": "/vmess"
+                            }
+                        }
+                    }
+                    config["inbounds"].append(vmess_inbound)
+                    logger.info(f"Created new VMess inbound for client {username}")
+                
+                # Write back to file with proper JSON formatting
+                with open(self.config_path, "w") as f:
+                    json.dump(config, f, indent=2, ensure_ascii=False)
+                
+                logger.info(f"Successfully added VMess user {username} to config")
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"Invalid JSON in config file: {e}")
+                # Create backup and recreate config
+                import shutil
+                backup_path = f"{self.config_path}.backup.{int(time.time())}"
+                shutil.copy2(self.config_path, backup_path)
+                logger.info(f"Backed up invalid config to {backup_path}")
+                
+                # Create new basic config
+                basic_config = {
+                    "inbounds": [
+                        {
+                            "port": 443,
+                            "protocol": "vmess",
+                            "settings": {
+                                "clients": [
+                                    {
+                                        "id": user_uuid,
+                                        "alterId": 0,
+                                        "email": username,
+                                        "level": 0
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "outbounds": [{"protocol": "freedom"}]
+                }
+                with open(self.config_path, "w") as f:
+                    json.dump(basic_config, f, indent=2)
+                logger.info("Created new valid Xray config")
                 
         except Exception as e:
             logger.error(f"Error adding to Xray config: {e}")

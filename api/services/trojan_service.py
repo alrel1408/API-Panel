@@ -9,6 +9,7 @@ import json
 import os
 import re
 import uuid
+import time
 from datetime import datetime, timedelta
 import logging
 
@@ -343,122 +344,174 @@ class TrojanService:
             return False
     
     def _add_to_xray_config(self, username, password, expiry_str):
-        """Add user to Xray config using Python file manipulation"""
+        """Add user to Xray config - properly formatted for Xray"""
         try:
             if not os.path.exists(self.config_path):
-                # Create a basic config structure if it doesn't exist
+                # Create a minimal valid Xray config if it doesn't exist
                 basic_config = {
-                    "inbounds": [],
-                    "outbounds": [],
-                    "routing": {}
+                    "inbounds": [
+                        {
+                            "port": 443,
+                            "protocol": "trojan",
+                            "settings": {
+                                "clients": []
+                            }
+                        }
+                    ],
+                    "outbounds": [
+                        {
+                            "protocol": "freedom"
+                        }
+                    ]
                 }
                 os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
                 with open(self.config_path, "w") as f:
                     json.dump(basic_config, f, indent=2)
+                logger.info(f"Created basic Xray config at {self.config_path}")
+                return
             
-            # Read current config
-            with open(self.config_path, "r") as f:
-                content = f.read()
-            
-            # Add trojan WS entry
-            trojan_ws_entry = f'#! {username} {expiry_str}\n}},{{"password": "{password}","email": "{username}"}}'
-            if '#trojanws' in content:
-                content = content.replace('#trojanws', f'#trojanws\n{trojan_ws_entry}')
-            else:
-                # If marker doesn't exist, add it at the end
-                content += f'\n#trojanws\n{trojan_ws_entry}'
-            
-            # Add trojan gRPC entry  
-            trojan_grpc_entry = f'#!# {username} {expiry_str}\n}},{{"password": "{password}","email": "{username}"}}'
-            if '#trojangrpc' in content:
-                content = content.replace('#trojangrpc', f'#trojangrpc\n{trojan_grpc_entry}')
-            else:
-                # If marker doesn't exist, add it at the end
-                content += f'\n#trojangrpc\n{trojan_grpc_entry}'
-            
-            # Write back to file
-            with open(self.config_path, "w") as f:
-                f.write(content)
+            # Read current config as JSON
+            try:
+                with open(self.config_path, "r") as f:
+                    config = json.load(f)
+                
+                # Find trojan inbound and add client
+                trojan_added = False
+                for inbound in config.get("inbounds", []):
+                    if inbound.get("protocol") == "trojan":
+                        if "settings" not in inbound:
+                            inbound["settings"] = {"clients": []}
+                        if "clients" not in inbound["settings"]:
+                            inbound["settings"]["clients"] = []
+                        
+                        # Add new client
+                        client = {
+                            "password": password,
+                            "email": username,
+                            "level": 0,
+                            "flow": ""
+                        }
+                        inbound["settings"]["clients"].append(client)
+                        trojan_added = True
+                        logger.info(f"Added Trojan client {username} to existing inbound")
+                        break
+                
+                # If no trojan inbound found, create one
+                if not trojan_added:
+                    trojan_inbound = {
+                        "port": 443,
+                        "protocol": "trojan",
+                        "settings": {
+                            "clients": [
+                                {
+                                    "password": password,
+                                    "email": username,
+                                    "level": 0,
+                                    "flow": ""
+                                }
+                            ]
+                        },
+                        "streamSettings": {
+                            "network": "tcp",
+                            "security": "tls",
+                            "tlsSettings": {
+                                "serverName": self.domain,
+                                "certificates": []
+                            }
+                        }
+                    }
+                    config["inbounds"].append(trojan_inbound)
+                    logger.info(f"Created new Trojan inbound for client {username}")
+                
+                # Write back to file with proper JSON formatting
+                with open(self.config_path, "w") as f:
+                    json.dump(config, f, indent=2, ensure_ascii=False)
+                
+                logger.info(f"Successfully added Trojan user {username} to config")
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"Invalid JSON in config file: {e}")
+                # Create backup and recreate config
+                import shutil
+                backup_path = f"{self.config_path}.backup.{int(time.time())}"
+                shutil.copy2(self.config_path, backup_path)
+                logger.info(f"Backed up invalid config to {backup_path}")
+                
+                # Create new basic config
+                basic_config = {
+                    "inbounds": [
+                        {
+                            "port": 443,
+                            "protocol": "trojan",
+                            "settings": {
+                                "clients": [
+                                    {
+                                        "password": password,
+                                        "email": username,
+                                        "level": 0,
+                                        "flow": ""
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "outbounds": [{"protocol": "freedom"}]
+                }
+                with open(self.config_path, "w") as f:
+                    json.dump(basic_config, f, indent=2)
+                logger.info("Created new valid Xray config")
                 
         except Exception as e:
             logger.error(f"Error adding to Xray config: {e}")
             raise
     
     def _remove_from_xray_config(self, username):
-        """Remove user from Xray config using Python file manipulation"""
+        """Remove user from Xray config using proper JSON manipulation"""
         try:
             if not os.path.exists(self.config_path):
                 return
             
-            # Get expiry for the user
-            expiry = self._get_user_expiry(username)
-            if not expiry:
-                return
-            
-            # Read current config
+            # Read current config as JSON
             with open(self.config_path, "r") as f:
-                lines = f.readlines()
+                config = json.load(f)
             
-            # Remove trojan WS entry
-            new_lines = []
-            skip_until_end = False
-            for line in lines:
-                if line.strip() == f'#! {username} {expiry}':
-                    skip_until_end = True
-                    continue
-                elif skip_until_end and line.strip().startswith('}}'):
-                    skip_until_end = False
-                    continue
-                elif not skip_until_end:
-                    new_lines.append(line)
+            # Remove client from all trojan inbounds
+            removed = False
+            for inbound in config.get("inbounds", []):
+                if inbound.get("protocol") == "trojan":
+                    clients = inbound.get("settings", {}).get("clients", [])
+                    original_count = len(clients)
+                    # Remove clients with matching email/username
+                    inbound["settings"]["clients"] = [
+                        client for client in clients 
+                        if client.get("email") != username
+                    ]
+                    new_count = len(inbound["settings"]["clients"])
+                    if new_count < original_count:
+                        removed = True
+                        logger.info(f"Removed Trojan client {username} from inbound")
             
-            # Remove trojan gRPC entry
-            lines = new_lines
-            new_lines = []
-            skip_until_end = False
-            for line in lines:
-                if line.strip() == f'#!# {username} {expiry}':
-                    skip_until_end = True
-                    continue
-                elif skip_until_end and line.strip().startswith('}}'):
-                    skip_until_end = False
-                    continue
-                elif not skip_until_end:
-                    new_lines.append(line)
-            
-            # Write back to file
-            with open(self.config_path, "w") as f:
-                f.writelines(new_lines)
+            if removed:
+                # Write back to file
+                with open(self.config_path, "w") as f:
+                    json.dump(config, f, indent=2, ensure_ascii=False)
+                logger.info(f"Successfully removed Trojan user {username} from config")
+            else:
+                logger.warning(f"Trojan user {username} not found in config")
                 
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in config file: {e}")
         except Exception as e:
             logger.error(f"Error removing from Xray config: {e}")
             raise
     
     def _update_xray_config(self, username, new_expiry):
-        """Update user expiry in Xray config using Python file manipulation"""
+        """Update user expiry in Xray config - Note: Xray doesn't use expiry in config"""
         try:
-            if not os.path.exists(self.config_path):
-                return
-            
-            # Read current config
-            with open(self.config_path, "r") as f:
-                lines = f.readlines()
-            
-            # Update trojan WS entry
-            for i, line in enumerate(lines):
-                if line.strip().startswith(f'#! {username} '):
-                    lines[i] = f'#! {username} {new_expiry}\n'
-                    break
-            
-            # Update trojan gRPC entry  
-            for i, line in enumerate(lines):
-                if line.strip().startswith(f'#!# {username} '):
-                    lines[i] = f'#!# {username} {new_expiry}\n'
-                    break
-            
-            # Write back to file
-            with open(self.config_path, "w") as f:
-                f.writelines(lines)
+            # Note: Xray config doesn't store expiry dates, they're managed in database
+            # This method exists for compatibility but doesn't need to modify config
+            logger.info(f"Expiry update for {username} to {new_expiry} - managed in database only")
+            return True
                 
         except Exception as e:
             logger.error(f"Error updating Xray config: {e}")
