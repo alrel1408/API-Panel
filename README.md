@@ -69,7 +69,7 @@ API Panel lengkap untuk mengelola semua service VPN berdasarkan script AlrelShop
 ### 1. **Auto Install (Recommended)**
 ```bash
 # Clone repository
-git clone https://github.com/your-repo/API-Panel.git
+git clone https://github.com/alrel1408/API-Panel.git
 cd API-Panel
 
 # Run installer
