@@ -65,13 +65,37 @@ echo -e "${YELLOW}📁 Creating API Panel directory...${NC}"
 mkdir -p /etc/API-Panel
 cd /etc/API-Panel
 
-# Copy files from current directory
-echo -e "${YELLOW}📋 Copying API Panel files...${NC}"
-cp -r api/ /etc/API-Panel/
-cp -r config/ /etc/API-Panel/
-cp -r docs/ /etc/API-Panel/
-cp -r scripts/ /etc/API-Panel/
-cp requirements.txt /etc/API-Panel/
+# Copy files from current directory or clone from GitHub
+echo -e "${YELLOW}📋 Setting up API Panel files...${NC}"
+
+if [ -d "api" ] && [ -f "requirements.txt" ]; then
+    # Files exist locally, copy them
+    echo -e "${GREEN}✅ Using local files${NC}"
+    cp -r api/ /etc/API-Panel/
+    cp -r config/ /etc/API-Panel/
+    cp -r docs/ /etc/API-Panel/
+    cp -r scripts/ /etc/API-Panel/
+    cp requirements.txt /etc/API-Panel/
+    cp README.md /etc/API-Panel/ 2>/dev/null || true
+    cp API_AUTHENTICATION.md /etc/API-Panel/ 2>/dev/null || true
+    cp postman_collection.json /etc/API-Panel/ 2>/dev/null || true
+else
+    # Clone from GitHub
+    echo -e "${YELLOW}📦 Cloning from GitHub repository...${NC}"
+    cd /tmp
+    git clone https://github.com/alrel1408/API-Panel.git
+    cd API-Panel
+    cp -r api/ /etc/API-Panel/
+    cp -r config/ /etc/API-Panel/
+    cp -r docs/ /etc/API-Panel/
+    cp -r scripts/ /etc/API-Panel/
+    cp requirements.txt /etc/API-Panel/
+    cp README.md /etc/API-Panel/
+    cp API_AUTHENTICATION.md /etc/API-Panel/
+    cp postman_collection.json /etc/API-Panel/
+    cd /etc/API-Panel
+    rm -rf /tmp/API-Panel
+fi
 
 # Create virtual environment
 echo -e "${YELLOW}🐍 Creating Python virtual environment...${NC}"
@@ -138,57 +162,128 @@ mkdir -p /var/log/api-panel
 
 # Set permissions
 chmod +x /etc/API-Panel/api/main_api.py
+chmod +x /etc/API-Panel/api/api_key_manager.py 2>/dev/null || true
 chmod +x /etc/API-Panel/scripts/*.sh
+chown -R root:root /etc/API-Panel
+chmod 755 /etc/API-Panel
+chmod -R 644 /etc/API-Panel/config/
+chmod 600 /etc/API-Panel/config/api_config.json
 
-# Create config file
+# Generate secure API key
+echo -e "${YELLOW}🔑 Generating secure API key...${NC}"
+API_KEY="alrelshop-$(openssl rand -hex 16)-$(date +%Y%m%d)"
+echo -e "${GREEN}✅ Generated API Key: ${API_KEY}${NC}"
+
+# Create config file with security settings
 echo -e "${YELLOW}⚙️ Creating configuration file...${NC}"
 cat > /etc/API-Panel/config/api_config.json << EOF
 {
-    "api": {
-        "host": "0.0.0.0",
-        "port": 5000,
-        "debug": false
+  "api": {
+    "host": "0.0.0.0",
+    "port": 5000,
+    "debug": false,
+    "log_level": "INFO",
+    "log_file": "/var/log/api-panel/api-panel.log"
+  },
+  "services": {
+    "ssh": {
+      "enabled": true,
+      "default_days": 30,
+      "default_ip_limit": 1,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_ip_limit": 4,
+      "trial_quota_gb": 5
     },
-    "services": {
-        "ssh": {
-            "enabled": true,
-            "default_days": 30,
-            "default_ip_limit": 1,
-            "default_quota_gb": 0
-        },
-        "vmess": {
-            "enabled": true,
-            "default_days": 30,
-            "default_ip_limit": 1,
-            "default_quota_gb": 0
-        },
-        "vless": {
-            "enabled": true,
-            "default_days": 30,
-            "default_ip_limit": 1,
-            "default_quota_gb": 0
-        },
-        "shadowsocks": {
-            "enabled": true,
-            "default_days": 30,
-            "default_quota_gb": 0
-        },
-        "trojan": {
-            "enabled": true,
-            "default_days": 30,
-            "default_ip_limit": 1,
-            "default_quota_gb": 0
-        },
-        "trial": {
-            "enabled": true,
-            "default_minutes": 60
-        }
+    "vmess": {
+      "enabled": true,
+      "default_days": 30,
+      "default_ip_limit": 1,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_ip_limit": 3,
+      "trial_quota_gb": 1,
+      "default_bug": "bug.com"
     },
-    "telegram": {
-        "enabled": false,
-        "bot_token": "",
-        "chat_id": ""
+    "vless": {
+      "enabled": true,
+      "default_days": 30,
+      "default_ip_limit": 1,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_ip_limit": 2,
+      "trial_quota_gb": 1
+    },
+    "shadowsocks": {
+      "enabled": true,
+      "default_days": 30,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_quota_gb": 5,
+      "default_cipher": "aes-128-gcm"
+    },
+    "trojan": {
+      "enabled": true,
+      "default_days": 30,
+      "default_ip_limit": 1,
+      "default_quota_gb": 0,
+      "trial_minutes": 60,
+      "trial_ip_limit": 3,
+      "trial_quota_gb": 1
+    },
+    "trial": {
+      "enabled": true,
+      "default_minutes": 60,
+      "auto_cleanup": true,
+      "cleanup_interval": 3600
     }
+  },
+  "telegram": {
+    "enabled": false,
+    "bot_token": "",
+    "chat_id": "",
+    "notifications": {
+      "account_created": true,
+      "account_deleted": true,
+      "account_renewed": true,
+      "trial_created": true,
+      "system_alerts": true
+    }
+  },
+  "security": {
+    "rate_limit": {
+      "enabled": true,
+      "requests_per_minute": 100,
+      "burst_size": 20
+    },
+    "cors": {
+      "enabled": true,
+      "allowed_origins": ["*"],
+      "allowed_methods": ["GET", "POST", "PUT", "DELETE"],
+      "allowed_headers": ["Content-Type", "Authorization", "X-API-Key"]
+    },
+    "authentication": {
+      "enabled": true,
+      "type": "bearer",
+      "api_key": "$API_KEY",
+      "require_header": true
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "handlers": {
+      "file": {
+        "enabled": true,
+        "path": "/var/log/api-panel/api-panel.log",
+        "max_size": "10MB",
+        "backup_count": 5
+      },
+      "console": {
+        "enabled": true
+      }
+    }
+  }
 }
 EOF
 
@@ -314,33 +409,69 @@ echo -e "${BLUE}🚀 Available Commands:${NC}"
 echo -e "   • Start API: ${GREEN}systemctl start api-panel${NC}"
 echo -e "   • Stop API: ${GREEN}systemctl stop api-panel${NC}"
 echo -e "   • Restart API: ${GREEN}systemctl restart api-panel${NC}"
-echo -e "   • Check Status: ${GREEN}/etc/API-Panel/scripts/check_status.sh${NC}"
+echo -e "   • Check Status: ${GREEN}/etc/API-Panel/scripts/status.sh${NC}"
+echo -e "   • Start Service: ${GREEN}/etc/API-Panel/scripts/start.sh${NC}"
+echo -e "   • Stop Service: ${GREEN}/etc/API-Panel/scripts/stop.sh${NC}"
 echo -e "   • Backup: ${GREEN}/etc/API-Panel/scripts/backup.sh${NC}"
+echo -e "   • API Key Manager: ${GREEN}/etc/API-Panel/scripts/api-key-manager.sh${NC}"
+echo -e "   • Test API: ${GREEN}python3 /etc/API-Panel/scripts/test_api.py${NC}"
 echo ""
 echo -e "${BLUE}📚 Documentation:${NC}"
 echo -e "   • API Docs: ${GREEN}/etc/API-Panel/docs/${NC}"
 echo -e "   • Config: ${GREEN}/etc/API-Panel/config/api_config.json${NC}"
 echo ""
+echo -e "${BLUE}🔐 Security Information:${NC}"
+echo -e "   • API Key: ${GREEN}$API_KEY${NC}"
+echo -e "   • Authentication: ${GREEN}Enabled${NC}"
+echo -e "   • Rate Limiting: ${GREEN}Enabled${NC}"
+echo -e "   • CORS Protection: ${GREEN}Enabled${NC}"
+echo ""
 echo -e "${YELLOW}⚠️  Important Notes:${NC}"
+echo -e "   • Save your API key securely!"
+echo -e "   • Use X-API-Key header for authentication"
 echo -e "   • Pastikan domain sudah dikonfigurasi dengan benar"
 echo -e "   • Update konfigurasi Telegram bot jika diperlukan"
 echo -e "   • Monitor logs di /var/log/api-panel/"
 echo ""
 echo -e "${GREEN}🎯 Next Steps:${NC}"
-echo -e "   1. Test API endpoints"
-echo -e "   2. Configure domain dan SSL"
-echo -e "   3. Setup monitoring dan backup"
-echo -e "   4. Test semua service (SSH, VMess, VLess, dll)"
+echo -e "   1. Save your API key: ${GREEN}$API_KEY${NC}"
+echo -e "   2. Test API endpoints with authentication"
+echo -e "   3. Configure domain dan SSL"
+echo -e "   4. Generate new API key if needed: ${GREEN}/etc/API-Panel/scripts/api-key-manager.sh${NC}"
+echo -e "   5. Setup monitoring dan backup"
+echo -e "   6. Test semua service (SSH, VMess, VLess, dll)"
 echo ""
 
 # Test API endpoint
 echo -e "${YELLOW}🧪 Testing API endpoint...${NC}"
-sleep 2
+sleep 3
+
+# Test basic endpoint (no auth required)
 if curl -s http://localhost:5000/ > /dev/null; then
-    echo -e "${GREEN}✅ API endpoint is accessible${NC}"
+    echo -e "${GREEN}✅ API basic endpoint is accessible${NC}"
 else
-    echo -e "${RED}❌ API endpoint is not accessible${NC}"
+    echo -e "${RED}❌ API basic endpoint is not accessible${NC}"
 fi
+
+# Test authenticated endpoint
+echo -e "${YELLOW}🔐 Testing API authentication...${NC}"
+AUTH_TEST=$(curl -s -H "X-API-Key: $API_KEY" http://localhost:5000/api/status)
+if echo "$AUTH_TEST" | grep -q "success"; then
+    echo -e "${GREEN}✅ API authentication is working${NC}"
+else
+    echo -e "${RED}❌ API authentication failed${NC}"
+fi
+
+# Show example API usage
+echo -e "${BLUE}💡 Example API Usage:${NC}"
+echo -e "   ${YELLOW}# Test API status${NC}"
+echo -e "   ${GREEN}curl -H \"X-API-Key: $API_KEY\" http://YOUR_IP:5000/api/status${NC}"
+echo ""
+echo -e "   ${YELLOW}# Create SSH account${NC}"
+echo -e "   ${GREEN}curl -X POST http://YOUR_IP:5000/api/ssh/create \\${NC}"
+echo -e "   ${GREEN}     -H \"Content-Type: application/json\" \\${NC}"
+echo -e "   ${GREEN}     -H \"X-API-Key: $API_KEY\" \\${NC}"
+echo -e "   ${GREEN}     -d '{\"username\":\"test\",\"password\":\"pass123\",\"days\":30}'${NC}"
 
 echo ""
 echo -e "${GREEN}✨ Installation completed successfully!${NC}"

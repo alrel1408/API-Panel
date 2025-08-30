@@ -4,27 +4,41 @@ API Panel lengkap untuk mengelola semua service VPN berdasarkan script AlrelShop
 
 ## 🚀 Quick Install - One Click Installation
 
-### **Auto Install Langsung dari GitHub (Tercepat!)**
+### **🚀 ONE-CLICK INSTALL - Super Simple!**
 ```bash
-# Install langsung dari GitHub repository
+# Method 1: Direct dari GitHub (Paling mudah!)
 curl -sL https://raw.githubusercontent.com/alrel1408/API-Panel/main/install/install.sh | bash
-```
 
-### **Alternative One-Click Install**
-```bash
-# Method 1: Clone dan install otomatis
-bash <(curl -s https://raw.githubusercontent.com/alrel1408/API-Panel/main/install/quick-install.sh)
-
-# Method 2: Wget dan install
+# Method 2: Wget 
 wget -qO- https://raw.githubusercontent.com/alrel1408/API-Panel/main/install/install.sh | bash
 
-# Method 3: Untuk server tanpa internet langsung
-git clone https://github.com/alrel1408/API-Panel.git && cd API-Panel && chmod +x install/install.sh && ./install/install.sh
+# Method 3: Download dan run
+wget https://raw.githubusercontent.com/alrel1408/API-Panel/main/install/install.sh
+chmod +x install.sh
+./install.sh
 ```
+
+**✨ SATU COMMAND SAJA!** Script install.sh akan:
+- ✅ Auto-detect OS (Debian/Ubuntu/CentOS)
+- ✅ Install semua dependencies
+- ✅ Clone/copy files dari GitHub
+- ✅ Generate secure API key otomatis
+- ✅ Setup systemd service & nginx
+- ✅ Configure firewall
+- ✅ Test instalasi
+- ✅ Siap digunakan!
 
 **✅ Setelah install selesai, API Panel akan tersedia di:** `http://YOUR_IP:5000`
 
-**🔐 Default API Key:** `alrelshop-secret-api-key-2024` *(Ganti ini sebelum production!)*
+**🔐 API Key:** Otomatis generate secure API key saat install!
+
+**📋 Install Features:**
+- 🔑 **Auto-generate secure API key**
+- 🔒 **Authentication enabled by default**
+- 🛡️ **Rate limiting & CORS protection**
+- 📊 **Complete logging system**
+- 🔧 **Service management scripts**
+- ✅ **Auto-testing after install**
 
 ---
 
