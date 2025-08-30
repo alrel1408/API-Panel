@@ -184,6 +184,13 @@ POST   /trial/delete    - Delete trial account
 GET    /trial/list      - List trial accounts
 ```
 
+### **Admin Management (NEW!)**
+```
+POST   /admin/generate-api-key    - Generate new API key
+GET    /admin/validate-api-key    - Validate API key sync
+GET    /admin/current-api-key     - Get current API key
+```
+
 ### **System Management**
 ```
 GET    /status          - API status
@@ -302,6 +309,56 @@ sudo systemctl restart api-panel
 
 **📖 Dokumentasi lengkap:** [API_AUTHENTICATION.md](API_AUTHENTICATION.md)
 
+## 🔧 API Key Management (Auto Generate & Sync)
+
+**🚀 NEW FEATURE:** Sekarang Anda bisa generate API key baru dan otomatis sync ke semua file!
+
+### **🎯 One-Command API Key Generation:**
+
+#### **Method 1: CLI Tool (Recommended)**
+```bash
+# Interactive menu
+sudo /etc/API-Panel/scripts/api-key-manager.sh
+
+# Direct command
+sudo /etc/API-Panel/scripts/api-key-manager.sh generate
+```
+
+#### **Method 2: API Endpoint**
+```bash
+curl -X POST http://YOUR_IP:5000/api/admin/generate-api-key \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: CURRENT_API_KEY" \
+  -d '{"confirm": true}'
+```
+
+#### **Method 3: Python Script**
+```bash
+cd /etc/API-Panel/api
+python3 api_key_manager.py generate
+```
+
+### **✅ Auto-Sync Features:**
+- ✅ **Config file** (`api_config.json`)
+- ✅ **Postman collection** (`postman_collection.json`)
+- ✅ **Test script** (`test_api.py`)
+- ✅ **Documentation** (README.md, API_AUTHENTICATION.md)
+- ✅ **Automatic backup** sebelum perubahan
+
+### **🔍 Validation & Management:**
+```bash
+# Validate semua file tersync
+sudo /etc/API-Panel/scripts/api-key-manager.sh validate
+
+# Show current API key
+sudo /etc/API-Panel/scripts/api-key-manager.sh current
+
+# Test API dengan current key
+sudo /etc/API-Panel/scripts/api-key-manager.sh test
+```
+
+**🎉 Tidak perlu edit file manual lagi!**
+
 ## 🔧 Management Commands
 
 ### **Service Management**
@@ -338,6 +395,9 @@ sudo /etc/API-Panel/scripts/stop.sh
 
 # Test API authentication
 python3 /etc/API-Panel/scripts/test_api.py
+
+# API Key Management (NEW!)
+sudo /etc/API-Panel/scripts/api-key-manager.sh
 ```
 
 ## 📊 Monitoring & Logs

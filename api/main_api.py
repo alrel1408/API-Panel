@@ -33,6 +33,7 @@ from services.vless_service import VLessService
 from services.shadowsocks_service import ShadowsocksService
 from services.trojan_service import TrojanService
 from services.trial_service import TrialService
+from api_key_manager import APIKeyManager
 
 app = Flask(__name__)
 CORS(app)
@@ -122,6 +123,7 @@ vless_service = VLessService()
 shadowsocks_service = ShadowsocksService()
 trojan_service = TrojanService()
 trial_service = TrialService()
+api_key_manager = APIKeyManager()
 
 class APIPanel:
     def __init__(self):
@@ -553,6 +555,80 @@ def system_status():
         })
     except Exception as e:
         logger.error(f"Error getting system status: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# API Key Management Endpoints
+@app.route('/api/admin/generate-api-key', methods=['POST'])
+@require_api_key
+def generate_new_api_key():
+    """Generate new API key and sync to all files"""
+    try:
+        data = request.get_json() or {}
+        confirm = data.get('confirm', False)
+        
+        if not confirm:
+            return jsonify({
+                "status": "error",
+                "message": "Please set 'confirm': true to generate new API key",
+                "warning": "This will invalidate the current API key"
+            }), 400
+        
+        # Generate and sync new API key
+        new_api_key = api_key_manager.generate_and_sync_api_key()
+        
+        if new_api_key:
+            return jsonify({
+                "status": "success",
+                "message": "New API key generated and synced successfully",
+                "new_api_key": new_api_key,
+                "timestamp": datetime.now().isoformat(),
+                "notice": "Please restart the API service: sudo systemctl restart api-panel"
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Failed to generate or sync API key"
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error generating API key: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/admin/validate-api-key', methods=['GET'])
+@require_api_key
+def validate_api_key_sync():
+    """Validate API key synchronization across all files"""
+    try:
+        is_synced = api_key_manager.validate_api_key_sync()
+        current_key = api_key_manager.get_current_api_key()
+        
+        return jsonify({
+            "status": "success",
+            "is_synced": is_synced,
+            "current_api_key": current_key,
+            "message": "All files synchronized" if is_synced else "Files need synchronization",
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error validating API key: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/admin/current-api-key', methods=['GET'])
+@require_api_key
+def get_current_api_key():
+    """Get current API key"""
+    try:
+        current_key = api_key_manager.get_current_api_key()
+        
+        return jsonify({
+            "status": "success",
+            "current_api_key": current_key,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting current API key: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
